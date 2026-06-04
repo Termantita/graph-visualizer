@@ -1,8 +1,9 @@
-import { marked } from "marked";
+import { parseNote } from "~/services/parse-note";
 import type { Note } from "~/types";
 
 export const useVaultStore = defineStore("vault", () => { 
     const notes: Ref<Record<string, Note>> = ref({});
+    const images: Ref<Record<string, string>> = ref({});
     const activeNoteName: Ref<string | null> = ref(null);
 
     const activeNote = computed(() => {
@@ -12,21 +13,35 @@ export const useVaultStore = defineStore("vault", () => {
     })
     
     const loadVaultFromFiles = async (fileList: File[]) => {
+        // Reset states
+        Object.values(images.value).forEach(URL.revokeObjectURL)
+        images.value = {};
         notes.value = {};
 
         for (let file of fileList) {
-            if (!file.name.endsWith(".md")) continue;
+            const [type, extension] = file.type.split("/");
 
-            const text = await file.text();
+            switch (type) {
+                case "image":
+                    images.value[file.name] = URL.createObjectURL(file);
+                    break;
+                case "text":
+                    const content = await file.text();
+                    let {outboundLinks, tags} = await parseNote(content);
+                    const noteName = file.name.replace(".md", "");
 
-            notes.value.push(ref({
-                id: file.name.replace(".md", ""),
-                note: {
-                    type: file.type,
-                    content: text,
-                    parsed: await marked.parse(text)
-                } as Note
-            }));
+                    notes.value[noteName] = {
+                        name: noteName,
+                        path: file.webkitRelativePath,
+                        rawContent: content,
+                        outboundLinks,
+                        tags,
+                    }
+
+                    break;
+                default:
+                    continue;
+            }
         };
     };
 
