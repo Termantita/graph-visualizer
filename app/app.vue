@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { marked } from "marked";
-import { WikiLinks } from "./services/markdown/extensions";
+import { Tags, WikiLinks } from "./services/marked/extensions";
 
-marked.use({extensions: [WikiLinks]});
+marked.use({extensions: [WikiLinks, Tags]});
 </script>
 
 <template>
