@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { useVaultStore } from "~/stores/vault";
 import { marked } from "marked";
-import type { Note } from "~/types";
-
-const markdownFiles = ref<Note[]>([])
-const selectedFile = ref<Note>()
 
 const vaultStore = useVaultStore();
 
@@ -15,9 +11,16 @@ const onChange = async (e: Event) => {
 
 const selectFile = (e: PointerEvent) => {
   const btn = e.currentTarget as HTMLButtonElement;
-  vaultStore;
-  selectedFile.value = markdownFiles.value.find(file => file.name === btn.textContent);
+  const btnText = btn.textContent;
+
+  vaultStore.activeNoteName = vaultStore.notes[btnText]?.name ?? null;
 }
+
+const lazyParseContent = computed(() => {
+  if (!vaultStore.activeNote) return;
+
+  return marked.parse(vaultStore.activeNote.rawContent);
+})
 
 const handleWikiLinks = (e: PointerEvent) => {
   const link = e.target as HTMLLinkElement;
@@ -25,9 +28,11 @@ const handleWikiLinks = (e: PointerEvent) => {
 
   if (!target || target == undefined) return;
 
-  const match = markdownFiles.value.find(file => link.dataset["target"] === file.name);
+  if (!vaultStore.notes) return;
 
-  if (match) selectedFile.value = match;
+  const match = vaultStore.activeNoteName = vaultStore.notes[target]?.name ?? null;
+
+  if (match) vaultStore.activeNoteName = match;
 }
 </script>
 
@@ -36,7 +41,7 @@ const handleWikiLinks = (e: PointerEvent) => {
     <main>
       <input type="file" id="vaultInput" @change="onChange" webkitdirectory directory multiple />
       <ul>
-        <li v-for="(path, idx) in markdownFiles" :key="idx"><button @click="selectFile"  class="bg-lime-500 p-2 m-1">{{ path.name }}</button></li>
+        <li v-for="(note, idx) in vaultStore.notes" :key="idx"><button @click="selectFile"  class="bg-lime-500 p-2 m-1">{{ note.name }}</button></li>
       </ul>
     </main>
     <Graph />
@@ -44,8 +49,8 @@ const handleWikiLinks = (e: PointerEvent) => {
       <div class="m-3">
         Notas
         <article>
-          <h1>{{ selectedFile?.name || "no content" }}</h1>
-          <div v-html="selectedFile?.parsed" @click="handleWikiLinks" class="min-w-50 min-h-150 bg-gray-500 rounded-md"></div>
+          <h1>{{ vaultStore.activeNoteName || "N/A" }}</h1>
+          <div v-html="lazyParseContent" @click="handleWikiLinks" class="min-w-50 min-h-150 bg-gray-500 rounded-md"></div>
         </article>
       </div>
     </aside>
