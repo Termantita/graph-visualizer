@@ -8,11 +8,6 @@ export type Note = {
   tags: string[]
 }
 
-export type VaultStore = {
-    notes: Ref<Record<string, string>>
-    activeNoteName: Ref<string | null>;
-}
-
 export type WikiLinkToken = Token & {
     type: "wikiLink",
     rawText: string,

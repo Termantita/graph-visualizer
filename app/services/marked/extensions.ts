@@ -1,4 +1,4 @@
-import type { TokenizerAndRendererExtension, Token } from "marked";
+import { type TokenizerAndRendererExtension, type Token, marked } from "marked";
 import type { TagToken, WikiLinkToken } from "~/types";
 
 export const WikiLinks: TokenizerAndRendererExtension = {
@@ -10,7 +10,7 @@ export const WikiLinks: TokenizerAndRendererExtension = {
     },
 
     tokenizer(src: string, tokens: Token[]) {
-        const rule = /(?<!\\)\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/g;
+        const rule = /^\[\[([^\]|#]+)(?:\|([^\]]+))?\]\]/;
 
         const match = rule.exec(src);
 
@@ -30,7 +30,7 @@ export const WikiLinks: TokenizerAndRendererExtension = {
     renderer(token: Token) {
         const wikiToken = token as WikiLinkToken;
 
-        return `<a href="#" class="internal-link" data-target="${wikiToken.link}">${wikiToken.text}</a>`
+        return `<a href="#" class="internal-link" data-link-target="${wikiToken.link}">${wikiToken.text}</a>`
     }
 }
 
@@ -62,6 +62,6 @@ export const Tags: TokenizerAndRendererExtension = {
     renderer(token: Token) {
         const tagToken = token as TagToken;
 
-        return `<span class="bg-purple-700 rounded-lg text-purple-500 p-5" data-target="${tagToken.tag}">${tagToken.raw}</span>`;
+        return `<span class="bg-purple-700 rounded-xl inline-block p-[2px]" data-tag-target="${tagToken.tag}">${tagToken.raw}</span>`;
     }
 }
