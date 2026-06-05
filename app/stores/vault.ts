@@ -2,6 +2,7 @@ import { parseNote } from "~/services/parse-note";
 import type { Note } from "~/types";
 
 export const useVaultStore = defineStore("vault", () => { 
+    const vaultName: Ref<string | null> = ref(null);
     const notes: Ref<Record<string, Note>> = ref({});
     const images: Ref<Record<string, string>> = ref({});
     const activeNoteName: Ref<string | null> = ref(null);
@@ -21,11 +22,15 @@ export const useVaultStore = defineStore("vault", () => {
         for (let file of fileList) {
             const [type, extension] = file.type.split("/");
 
+            vaultName.value = vaultName.value || file.webkitRelativePath.split("/")[0] || null;
+
             switch (type) {
                 case "image":
                     images.value[file.name] = URL.createObjectURL(file);
                     break;
                 case "text":
+                    if (extension !== "markdown") continue;
+
                     const content = await file.text();
                     let {outboundLinks, tags} = await parseNote(content);
                     const noteName = file.name.replace(".md", "");
@@ -46,6 +51,7 @@ export const useVaultStore = defineStore("vault", () => {
     };
 
     return {
+        vaultName,
         notes,
         activeNoteName,
         activeNote,

@@ -1,58 +1,22 @@
 <script setup lang="ts">
-import { useVaultStore } from "~/stores/vault";
-import { marked } from "marked";
+import { getDirectory } from 'nuxt/kit';
 
-const vaultStore = useVaultStore();
+    const vaultStore = useVaultStore();
 
-const onChange = async (e: Event) => {
-  const files = e.target?.files as File[];
-  vaultStore.loadVaultFromFiles(files);
-}
+    const onChange = async (e: Event) => {
+        const files: File[] | null = e.target?.files;
 
-const selectFile = (e: PointerEvent) => {
-  const btn = e.currentTarget as HTMLButtonElement;
-  const btnText = btn.textContent;
+        if (!files) return;
 
-  vaultStore.activeNoteName = vaultStore.notes[btnText]?.name ?? null;
-}
+        await vaultStore.loadVaultFromFiles(files);
 
-const lazyParseContent = computed(() => {
-  if (!vaultStore.activeNote) return;
-
-  return marked.parse(vaultStore.activeNote.rawContent);
-})
-
-const handleWikiLinks = (e: PointerEvent) => {
-  const link = e.target as HTMLLinkElement;
-  const target = link.dataset["target"];
-
-  if (!target || target == undefined) return;
-
-  if (!vaultStore.notes) return;
-
-  const match = vaultStore.activeNoteName = vaultStore.notes[target]?.name ?? null;
-
-  if (match) vaultStore.activeNoteName = match;
-}
+        navigateTo(`/${vaultStore.vaultName}`);
+    }
 </script>
 
 <template>
-  <div class="flex w-full justify-between">
-    <main>
-      <input type="file" id="vaultInput" @change="onChange" webkitdirectory directory multiple />
-      <ul>
-        <li v-for="(note, idx) in vaultStore.notes" :key="idx"><button @click="selectFile"  class="bg-lime-500 p-2 m-1">{{ note.name }}</button></li>
-      </ul>
-    </main>
-    <Graph />
-    <aside class="flex-row-reverse h-full">
-      <div class="m-3">
-        Notas
-        <article>
-          <h1>{{ vaultStore.activeNoteName || "N/A" }}</h1>
-          <div v-html="lazyParseContent" @click="handleWikiLinks" class="min-w-50 min-h-150 bg-gray-500 rounded-md"></div>
-        </article>
-      </div>
-    </aside>
-  </div>
+    <div class="flex flex-col gap-3 items-center justify-center w-screen h-screen bg-zinc-700 text-white">
+        <h1 class="text-2xl">Welcome to Graph Visualizer</h1>
+        <input type="file" id="vaultInput" @change="onChange" webkitdirectory directory multiple class="text-sm text-white file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-zinc-500 file:text-white hover:file:bg-zinc-400 mb-2" />
+    </div>
 </template>
