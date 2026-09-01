@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { getDirectory } from 'nuxt/kit';
-
     const vaultStore = useVaultStore();
 
     const onChange = async (e: Event) => {
@@ -10,7 +8,7 @@ import { getDirectory } from 'nuxt/kit';
 
         await vaultStore.loadVaultFromFiles(files);
 
-        navigateTo(`/${vaultStore.vaultName}`);
+        await navigateTo(`/${vaultStore.vaultName}`);
     }
 </script>
 
